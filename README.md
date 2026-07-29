@@ -1,372 +1,211 @@
-\# MicroserviceProject
+# MicroserviceProject
 
+Modern .NET teknolojileri kullanılarak geliştirilen mikroservis mimarisi örnek projesidir.
 
+Projede Minimal API, CQRS, MediatR, MongoDB ve modern ASP.NET Core yaklaşımları kullanılarak ölçeklenebilir ve modüler bir yapı oluşturulmaktadır.
 
-Bu repository, \*\*.NET ile Microservices\*\* eğitimini takip ederken geliştirdiğim projeyi ve kendi aldığım teknik notları içermektedir.
+---
 
+# 🚀 Kullanılan Teknolojiler
 
+- .NET 9
+- ASP.NET Core 9 Minimal API
+- Entity Framework Core 9
+- MongoDB
+- MediatR
+- MassTransit
+- Swagger / OpenAPI
 
-> Amaç sadece projeyi tamamlamak değil; kullanılan mimariyi, tasarım desenlerini ve .NET ekosistemini detaylı şekilde öğrenmektir.
+---
 
+# 🏛 Mimari
 
-
-\---
-
-
-
-\# 🚀 Kullanılan Teknolojiler
-
-
-
-\- .NET 9
-
-\- ASP.NET Core Minimal API
-
-\- MediatR
-
-\- CQRS
-
-\- MongoDB
-
-\- Dependency Injection
-
-\- Options Pattern
-
-\- Result Pattern
-
-
-
-\---
-
-
-
-\# 📂 Proje Yapısı
-
-
+Proje Feature (Özellik) bazlı klasör yapısı kullanılarak geliştirilmiştir.
 
 ```text
+src
+└── services
+    └── catalog
+        └── MicroserviceProject.Catalog.Api
 
-MicroserviceProject
-
-│
-
-├── src
-
-│   └── services
-
-│       └── catalog
-
-│           └── MicroserviceProject.Catalog.Api
-
-│
-
-└── shared
-
-&#x20;   └── MicroserviceProject.Shared
-
+shared
+└── MicroserviceProject.Shared
 ```
 
+Kullanılan mimari yaklaşımlar:
 
+- Minimal API
+- CQRS (Command Query Responsibility Segregation)
+- MediatR
+- Dependency Injection
+- Options Pattern
+- Result Pattern
+- Generic Response Model
+- Extension Methods
+- Factory Method
 
-> Not: Shared projesi eğitim sürecinde ayrı bir Class Library olarak oluşturulmuştur.
+---
 
+# 📦 Mevcut Özellikler
 
+## Catalog Servisi
 
-\---
+- Kategori oluşturma
+- Kategori doğrulama
+- MongoDB bağlantısı
+- Standart API cevap modeli (ServiceResult)
+- Merkezi hata yönetimi (ProblemDetails)
 
+---
 
+# 🔧 Altyapı
 
-\# 📖 Şu Ana Kadar Öğrenilen Konular
+## Dependency Injection
 
-
-
-\## ✅ Minimal API
-
-
-
-Controller yerine endpoint tanımları kullanılmaktadır.
-
-
-
-Örnek:
-
-
-
-```csharp
-
-app.MapGroup("api/categories");
-
-```
-
-
-
-\---
-
-
-
-\## ✅ Dependency Injection
-
-
-
-Servislerin uygulama içerisinde otomatik oluşturulmasını sağlar.
-
-
-
-Örnek:
-
-
+Servis kayıtları Extension Method yapısı ile yönetilmektedir.
 
 ```csharp
-
 builder.Services.AddOptionsExt();
-
 builder.Services.AddDatabaseServiceExt();
-
 ```
 
+---
 
+## Options Pattern
 
-\---
-
-
-
-\## ✅ Options Pattern
-
-
-
-`appsettings.json` içerisindeki ayarlar Strongly Typed olarak okunmaktadır.
-
-
+`appsettings.json` dosyasındaki ayarlar Strongly Typed sınıflara bağlanmaktadır.
 
 Örnek:
 
-
-
 ```csharp
-
-builder.Services.AddOptions<MongoOptions>()
-
+builder.Services.AddOptions<MongoOptions>();
 ```
 
+---
 
+## Minimal API
 
-\---
+API endpointleri Controller yerine Minimal API yaklaşımı ile geliştirilmektedir.
 
+Örnek:
 
+```csharp
+app.MapGroup("/api/categories");
+```
 
-\## ✅ CQRS
+---
 
+## CQRS
 
-
-Her işlem kendi Feature klasörü altında tutulmaktadır.
-
-
+İşlemler Command ve Query olarak birbirinden ayrılmıştır.
 
 Örnek yapı:
 
-
-
 ```text
-
 Features
-
-&#x20;└── Categories
-
-&#x20;     └── Create
-
-&#x20;          ├── CreateCategoryCommand
-
-&#x20;          ├── CreateCategoryCommandHandler
-
-&#x20;          └── CreateCategoryResponse
-
+└── Categories
+    └── Create
+        ├── CreateCategoryCommand
+        ├── CreateCategoryCommandHandler
+        └── CreateCategoryResponse
 ```
 
+---
 
+## MediatR
 
-\---
-
-
-
-\## ✅ MediatR
-
-
-
-Endpoint ile Business Logic birbirinden ayrılmıştır.
-
-
+Endpoint ile Business Logic birbirinden bağımsız hale getirilmiştir.
 
 ```text
-
 HTTP Request
-
-&#x20;     │
-
-&#x20;     ▼
-
-Endpoint
-
-&#x20;     │
-
-&#x20;     ▼
-
-Mediator
-
-&#x20;     │
-
-&#x20;     ▼
-
-Handler
-
-&#x20;     │
-
-&#x20;     ▼
-
-Database
-
-```
-
-
-
-\---
-
-
-
-\## ✅ Result Pattern
-
-
-
-API'den dönen başarılı ve başarısız cevapların tek tip olması sağlanmaktadır.
-
-
-
-Başarılı cevap:
-
-
-
-```text
-
-200 OK
-
-```
-
-
-
-Başarısız cevap:
-
-
-
-```text
-
-ProblemDetails
-
-```
-
-
-
-\---
-
-
-
-\# 🔄 Request Akışı
-
-
-
-```text
-
-HTTP Request
-
-&#x20;     │
-
-&#x20;     ▼
-
-Minimal API Endpoint
-
-&#x20;     │
-
-&#x20;     ▼
-
-Mediator
-
-&#x20;     │
-
-&#x20;     ▼
-
+        │
+        ▼
+Minimal API
+        │
+        ▼
+MediatR
+        │
+        ▼
 Command Handler
-
-&#x20;     │
-
-&#x20;     ▼
-
-AppDbContext
-
-&#x20;     │
-
-&#x20;     ▼
-
-MongoDB
-
-&#x20;     │
-
-&#x20;     ▼
-
-ServiceResult
-
-&#x20;     │
-
-&#x20;     ▼
-
-ToGenericResult()
-
-&#x20;     │
-
-&#x20;     ▼
-
-HTTP Response
-
+        │
+        ▼
+Veritabanı
 ```
 
+---
 
+## Result Pattern
 
-\---
+API'den dönen tüm cevaplar `ServiceResult` yapısı ile standart hale getirilmektedir.
 
+Desteklenen cevap tipleri:
 
+- 200 OK
+- 201 Created
+- 204 No Content
+- 400 Bad Request
+- 404 Not Found
+- ProblemDetails
 
-\# 📌 Notlar
+---
 
+# 🔄 İstek Akışı
 
+```text
+HTTP Request
+        │
+        ▼
+Minimal API Endpoint
+        │
+        ▼
+MediatR
+        │
+        ▼
+Command Handler
+        │
+        ▼
+AppDbContext
+        │
+        ▼
+MongoDB
+        │
+        ▼
+ServiceResult<T>
+        │
+        ▼
+EndpointResult Extension
+        │
+        ▼
+HTTP Response
+```
 
-Bu repository eğitim ilerledikçe güncellenecektir.
+---
 
+# 🎯 Kullanılan Tasarım Desenleri
 
+- CQRS
+- Mediator Pattern
+- Result Pattern
+- Factory Method
+- Options Pattern
+- Dependency Injection
+- Extension Method
+- Generic Programming
 
-Her yeni bölümde;
+---
 
+# 📌 Yol Haritası
 
+Projeye ilerleyen aşamalarda aşağıdaki servis ve teknolojilerin eklenmesi planlanmaktadır.
 
-\- Kullanılan teknolojiler
-
-\- Tasarım desenleri
-
-\- Gerçek hayat örnekleri
-
-\- Mülakat notları
-
-\- Öğrenme notları
-
-
-
-README dosyasına eklenecektir.
-
-
-
-\---
-
-
-
-\# 📚 Kaynak
-
-
-
-\- Udemy - .NET ile Microservices
-
+- Basket Service
+- Order Service
+- Identity Service
+- API Gateway
+- Redis
+- RabbitMQ
+- MassTransit
+- YARP
+- Docker
+- Docker Compose
+- Authentication & Authorization
