@@ -1,0 +1,10 @@
+﻿global using Microsoft.EntityFrameworkCore;
+global using AutoMapper;
+global using MediatR;
+global using MicroserviceProject.Shared;
+global using MicroserviceProject.Shared.Extensions;
+global using System.Net;
+global using MassTransit;
+global using FluentValidation;
+global using MicroserviceProject.Catalog.Api.Features.Categories.Dtos;
+global using MicroserviceProject.Catalog.Api.Repositories;
