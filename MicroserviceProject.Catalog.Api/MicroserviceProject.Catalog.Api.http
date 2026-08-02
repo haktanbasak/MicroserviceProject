@@ -1,6 +1,15 @@
-@MicroserviceProject.Catalog.Api_HostAddress = http://localhost:5159
-
-GET {{MicroserviceProject.Catalog.Api_HostAddress}}/weatherforecast/
+@baseAddress = http://localhost:5159
+@categoryId= 08def0e3-1ea4-23b6-10ff-e0e1df
+GET {{baseAddress}}/api/categories
 Accept: application/json
-
+###
+POST {{baseAddress}}/api/categories
+Accept: application/json
+Content-Type: application/json
+{
+  "name": "Category 1"
+}
+###
+GET {{baseAddress}}/api/categories/{{categoryId}}
+Accept: application/json
 ###
