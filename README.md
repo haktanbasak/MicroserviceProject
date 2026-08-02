@@ -1,8 +1,8 @@
 # MicroserviceProject
 
-Modern .NET teknolojileri kullanılarak geliştirilen, mikroservis mimarisini temel alan örnek bir projedir.
+Modern .NET 8 teknolojileri kullanılarak geliştirilen, mikroservis mimarisi prensiplerini temel alan örnek bir projedir.
 
-Projede Minimal API, CQRS, MediatR ve MongoDB kullanılarak modüler, ölçeklenebilir ve sürdürülebilir bir mimari oluşturulmaktadır.
+Projede ASP.NET Core Minimal API, CQRS, MediatR, MongoDB ve ortak Shared kütüphanesi kullanılarak modüler, ölçeklenebilir ve sürdürülebilir bir servis mimarisi oluşturulmaktadır.
 
 ---
 
@@ -13,8 +13,10 @@ Projede Minimal API, CQRS, MediatR ve MongoDB kullanılarak modüler, ölçeklen
 - MongoDB
 - MongoDB.EntityFrameworkCore
 - MediatR
-- MassTransit
 - AutoMapper
+- MassTransit
+- FluentValidation
+- Refit
 - Swagger / OpenAPI
 - Docker
 - Docker Compose
@@ -29,19 +31,25 @@ Proje Feature (özellik) bazlı klasör yapısı kullanılarak geliştirilmekted
 MicroserviceProject
 │
 ├── MicroserviceProject.Catalog.Api
+│   ├── Features
+│   ├── Repositories
+│   ├── Options
+│   ├── Program.cs
+│   └── appsettings.json
 │
 ├── MicroserviceProject.Shared
+│   ├── Extensions
+│   └── ServiceResult.cs
 │
-├── docker-compose
-│
+├── docker-compose.yml
 ├── README.md
-│
 └── MicroserviceProject.sln
 ```
 
 Projede kullanılan mimari yaklaşımlar:
 
 - Minimal API
+- Feature Based Architecture
 - CQRS (Command Query Responsibility Segregation)
 - Mediator Pattern (MediatR)
 - Dependency Injection
@@ -59,24 +67,25 @@ Projede kullanılan mimari yaklaşımlar:
 
 Catalog mikroservisini içermektedir.
 
-Mevcut özellikler:
+### Mevcut Özellikler
 
-- Kategori oluşturma
-- Kategori doğrulama
-- MongoDB bağlantısı
-- CQRS yapısı
-- MediatR kullanımı
-- AutoMapper entegrasyonu
-- Standart API cevap modeli
-- Merkezi hata yönetimi
+- ✅ Kategori oluşturma
+- ✅ Tüm kategorileri listeleme
+- ✅ ID'ye göre kategori getirme
+- ✅ AutoMapper ile DTO dönüşümü
+- ✅ CQRS yapısı
+- ✅ MediatR kullanımı
+- ✅ MongoDB bağlantısı
+- ✅ Standart API cevap modeli (ServiceResult)
+- ✅ Merkezi hata yönetimi (ProblemDetails)
 
 ---
 
 ## MicroserviceProject.Shared
 
-Servisler tarafından ortak kullanılan yapıların bulunduğu katmandır.
+Tüm mikroservisler tarafından ortak kullanılacak altyapıları içermektedir.
 
-İçerdiği yapılar:
+### İçerdiği Yapılar
 
 - ServiceResult
 - Generic ServiceResult<T>
@@ -104,19 +113,19 @@ builder.Services.AddCommonServiceExt(typeof(CatalogAssembly));
 
 ## Options Pattern
 
-Uygulama ayarları (`appsettings.json`) Strongly Typed sınıflara bağlanmaktadır.
+`appsettings.json` içerisindeki ayarlar Strongly Typed sınıflara bağlanmaktadır.
 
 ```csharp
 builder.Services.AddOptions<MongoOptions>();
 ```
 
-Bu yapı sayesinde Connection String gibi ayarlar merkezi olarak yönetilmektedir.
+Bu sayede bağlantı bilgileri ve uygulama ayarları merkezi olarak yönetilmektedir.
 
 ---
 
 ## Minimal API
 
-API endpointleri Controller yerine Minimal API yaklaşımı ile geliştirilmektedir.
+API endpointleri Controller yerine Minimal API yaklaşımı kullanılarak geliştirilmektedir.
 
 ```csharp
 app.MapGroup("/api/categories");
@@ -132,12 +141,11 @@ app.MapGroup("/api/categories");
 Features
 └── Categories
     ├── Create
-    ├── Update
-    ├── Delete
-    └── GetAll
+    ├── GetAll
+    └── GetById
 ```
 
-Her işlem kendi Request, Response ve Handler sınıflarına sahiptir.
+Her işlem kendi Request, Handler ve Endpoint yapısına sahiptir.
 
 ---
 
@@ -152,7 +160,7 @@ HTTP Request
 Minimal API Endpoint
         │
         ▼
-Mediator
+MediatR
         │
         ▼
 Command / Query Handler
@@ -165,9 +173,9 @@ Business Logic
 
 ## AutoMapper
 
-DTO ile Entity nesneleri arasındaki dönüşümler AutoMapper kullanılarak gerçekleştirilmektedir.
+Entity ve DTO nesneleri arasındaki dönüşümler AutoMapper kullanılarak gerçekleştirilmektedir.
 
-Bu sayede manuel property eşleştirmeleri ortadan kaldırılmıştır.
+Bu sayede tekrar eden manuel property eşleştirme kodları azaltılmış ve bakım kolaylığı sağlanmıştır.
 
 ---
 
@@ -175,7 +183,7 @@ Bu sayede manuel property eşleştirmeleri ortadan kaldırılmıştır.
 
 API'den dönen tüm başarılı ve başarısız cevaplar standart bir yapı üzerinden yönetilmektedir.
 
-Başlıca cevap tipleri:
+Desteklenen cevap tipleri:
 
 - 200 OK
 - 201 Created
@@ -188,9 +196,7 @@ Başlıca cevap tipleri:
 
 ## Factory Method
 
-`ServiceResult` sınıfı nesneleri doğrudan oluşturulmak yerine statik metotlar kullanılarak üretilmektedir.
-
-Örnek:
+`ServiceResult` nesneleri doğrudan oluşturulmak yerine statik metotlar aracılığıyla üretilmektedir.
 
 ```csharp
 ServiceResult.SuccessAsNoContent();
@@ -202,22 +208,19 @@ ServiceResult<T>.SuccessAsOk(data);
 ServiceResult<T>.SuccessAsCreated(data, url);
 ```
 
-Bu yaklaşım daha okunabilir, güvenli ve standart bir kullanım sağlar.
+Bu yaklaşım daha okunabilir, güvenli ve standart bir kullanım sunmaktadır.
 
 ---
 
 ## Extension Methods
 
-Tekrarlayan işlemler Extension Method kullanılarak merkezi hale getirilmiştir.
+Tekrarlayan servis kayıtları ve endpoint dönüşümleri Extension Method kullanılarak merkezi hale getirilmiştir.
 
-Örneğin:
+Örnek olarak aşağıdaki tipler genişletilmektedir:
 
 - IServiceCollection
-- WebApplication
 - RouteGroupBuilder
 - ServiceResult
-
-tiplerine yeni davranışlar eklenmiştir.
 
 ---
 
@@ -239,13 +242,19 @@ MediatR
 Command / Query Handler
         │
         ▼
-AutoMapper
-        │
-        ▼
 AppDbContext
         │
         ▼
 MongoDB
+        │
+        ▼
+Entity
+        │
+        ▼
+AutoMapper
+        │
+        ▼
+DTO
         │
         ▼
 ServiceResult<T>
@@ -262,17 +271,17 @@ HTTP Response
 # 📦 Kullanılan NuGet Paketleri
 
 - MediatR
-- MassTransit
 - AutoMapper
-- MongoDB.EntityFrameworkCore
+- MassTransit
 - FluentValidation
+- MongoDB.EntityFrameworkCore
 - Refit
 - NewId
 - Swashbuckle.AspNetCore
 
 ---
 
-# 📈 Proje Durumu
+# 📊 Mevcut Durum
 
 | Özellik | Durum |
 |----------|:----:|
@@ -286,25 +295,49 @@ HTTP Response
 | Options Pattern | ✅ |
 | Result Pattern | ✅ |
 | Swagger | ✅ |
+| Docker | ✅ |
 | Docker Compose | ✅ |
-| Basket Service | ⏳ |
-| Order Service | ⏳ |
-| Identity Service | ⏳ |
-| Redis | ⏳ |
-| RabbitMQ | ⏳ |
-| API Gateway | ⏳ |
-| YARP | ⏳ |
+
+---
+
+# 🚀 Planlanan Bileşenler
+
+Projeye ilerleyen bölümlerde aşağıdaki servis ve teknolojilerin eklenmesi planlanmaktadır.
+
+- Basket Service
+- Order Service
+- Identity Service
+- Redis
+- RabbitMQ
+- API Gateway
+- YARP
+
+---
+
+# 📚 Öğrenilen Mimari Yaklaşımlar
+
+Bu projede aşağıdaki yazılım geliştirme yaklaşımları uygulanmaktadır.
+
+- Feature Based Architecture
+- Minimal API
+- CQRS
+- Mediator Pattern
+- Dependency Injection
+- Options Pattern
+- Result Pattern
+- Factory Method
+- Extension Methods
+- Generic Programming
 
 ---
 
 # 🎯 Amaç
 
-Bu proje;
+Bu projenin temel amacı;
 
-- Mikroservis mimarisini uygulamak,
-- Modern ASP.NET Core yaklaşımlarını kullanmak,
-- Servisler arası ortak bileşenleri Shared katmanında toplamak,
+- Mikroservis mimarisini modern .NET teknolojileri ile uygulamak,
+- Minimal API yaklaşımını gerçek bir projede kullanmak,
 - CQRS ve MediatR ile sorumlulukları ayırmak,
-- Sürdürülebilir ve ölçeklenebilir bir yazılım mimarisi oluşturmak
-
-amacıyla geliştirilmektedir.
+- Ortak bileşenleri Shared katmanında toplamak,
+- Modüler, sürdürülebilir ve ölçeklenebilir bir yazılım mimarisi oluşturmak,
+- Gerçek dünya projelerinde kullanılan tasarım desenlerini uygulamalı olarak geliştirmektir.
