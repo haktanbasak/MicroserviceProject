@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using MediatR;
 using MicroserviceProject.Catalog.Api.Features.Categories.Dtos;
-using MicroserviceProject.Catalog.Api.Features.Categories.GetAll;
 using MicroserviceProject.Catalog.Api.Repositories;
 using MicroserviceProject.Shared;
 using MicroserviceProject.Shared.Extensions;
@@ -9,7 +8,7 @@ using System.Net;
 
 namespace MicroserviceProject.Catalog.Api.Features.Categories.GetById
 {
-    public record GetCategoryByIdQuery(Guid Id) : IRequest<ServiceResult<CategoryDto>>;
+    public record GetCategoryByIdQuery(Guid Id) : IRequestByServiceResult<CategoryDto>;
 
     public class GetCategoryByIdQueryHandler(AppDbContext context, IMapper mapper) : IRequestHandler<GetCategoryByIdQuery, ServiceResult<CategoryDto>>
     {
